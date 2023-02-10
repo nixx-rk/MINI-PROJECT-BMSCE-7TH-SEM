@@ -20,9 +20,10 @@ ESP8266WebServer server(80);
 String page = "",pg1="",pg2="",pg3="",pg4="",pgb="",pgp="";
 char input[12];
 int count = 0;
+String expire="";
 
 int tags[]={0,0,0,0,0,0,0,0,0};
-int a;
+int a,types=1;
 int p1=0,p2=0,p3=0,p4=0;
 int c1=0,c2=0,c3=0,c4=0;
 
@@ -64,7 +65,7 @@ void setup()
   lcd.print("WiFi Connected");
   lcd.setCursor(0, 1);
   lcd.print(WiFi.localIP());
-  delay(1000);
+  while(!digitalRead(D0)) delay(1);
   
   lcd.setCursor(0, 0);
   lcd.print(" PLZ ADD ITEMS     ");
@@ -79,15 +80,16 @@ server.on("/", hc);
 void hc()
   {
     page = "<html><head><title>E Cart using IoT</title></head><style type=\"text/css\">";
-    page += "table{border-collapse: collapse;}th {background-color:  #3498db ;color: white;}table,td {border: 4px solid black;font-size: x-large;";
+    page += "table{border: 4px; border-collapse: collapse;}th {background-color:  #3498db ;color: white;}table,td {border: 4px solid black;font-size: x-large;";
     page += "text-align:center;border-style: groove;border-color: rgb(255,0,0);}</style><body><center>";
-    page += "<h1>Smart Shopping Cart using IoT</h1><br><br><table style=\"width: 1200px;height: 450px;\"><tr>";
-    page += "<th>ITEMS</th><th>QUANTITY</th><th>COST</th></tr>";
+    page += "<h1>Smart Shopping Cart using IoT</h1><br><br><table style=\"width: 1200px;height: "+String(100*types)+"px;\"><tr>";
+    page += "<th>ITEMS</th><th>QUANTITY</th><th>COST</th><th>Expire date</th></tr>";
     //<tr><td>Biscuit</td><td>"+String(tags[1])+"</td><td>"+String(30)+"</td></tr>"
     // page += "<tr><td>Soap</td><td>"+String(tags[2])+"</td><td>"+String(25)+"</td></tr><tr><td>Rice(1KG)</td><td>"+String(tags[3])+"</td><td>"+String(20)+"</td>";
     // page += "</tr><tr><td>Tea(50g)</td><td>"+String(tags[4])+"</td><td>"+String(15)+"</td></tr>";
+    //<button type=\"submit\" href=\"geeksforgeeks.org\" name=\"Pay Now\" value=\"Pay Now\" style=\"width: 200px;height: 50px\">Pay Now</button>
      pgp="<tr><th>Grand Total</th><th>"+String(items)+"</th><th>"+String(amount)+"</th></tr></table>";
-    pgp += "<br><input type=\"button\" name=\"Pay Now\" value=\"Pay Now\" style=\"width: 200px;height: 50px\"></center></body></html>";
+    pgp += "<br><a href=\"https://pages.razorpay.com/pI_JPuWZwYQO80O7R/view\" target=\"_blank\">Pay Now</a></center></body></html>";
     pgp+="<meta http-eqiv=\"refresh\" content=\"1\">";
     pgb=page+pg1+pg2+pg3+pg4+pgp;
     server.send(200,"text/html",pgb);
@@ -118,16 +120,23 @@ void loop()
         amount-=30;
         items--;
         tags[1]--;
-        if (tags[1]==0) pg1="";
+        if (tags[1]==0){
+          pg1="<tr><td></td><td></td><td></td></tr>";
+          types-=1;
+        }
         else{
-          pg1="<tr><td>Burger</td><td>"+String(tags[1])+"</td><td>"+String(30)+"</td></tr>";
+          expire="20 Feb 2023";
+          pg1="<tr><td>Burger</td><td>"+String(tags[1])+"</td><td>"+String(30)+"</td><td>"+expire+"</td></tr>";
         }         
       }
       else if(!a){
         amount+=30;
+
         tags[1]++;
+        if(tags[1]==1) types+=1;
         items++;
-        pg1="<tr><td>Burger</td><td>"+String(tags[1])+"</td><td>"+String(30)+"</td></tr>";
+        expire="20 Feb 2023";
+        pg1="<tr><td>Burger</td><td>"+String(tags[1])+"</td><td>"+String(30)+"</td><td>"+expire+"</td></tr>";
       }
       lcd.clear();
       Serial.print("Item: Burger\tRs.30\tTotal Amount: Rs."+(String)amount+"\tItems: "+(String)items);
@@ -147,16 +156,22 @@ void loop()
         amount-=25;
         items--;
         tags[2]--;
-        if (tags[2]==0) pg2=""; 
+        if (tags[2]==0){
+           pg2="";
+           types-=1; 
+        }
         else{
-          pg2="<tr><td>Maggie</td><td>"+String(tags[2])+"</td><td>"+String(25)+"</td></tr>";          
+          expire="15 Feb 2023";
+          pg2="<tr><td>Maggie</td><td>"+String(tags[2])+"</td><td>"+String(25)+"</td><td>"+expire+"</td></tr>";          
         }
       }
       else if(!a){
         amount+=25;
         tags[2]++;
+        if(tags[2]==1) types+=1;
         items++;
-        pg2="<tr><td>Maggie</td><td>"+String(tags[2])+"</td><td>"+String(25)+"</td></tr>";
+        expire="15 Feb 2023";
+        pg2="<tr><td>Maggie</td><td>"+String(tags[2])+"</td><td>"+String(25)+"</td><td>"+expire+"</td></tr>";
       }
       lcd.clear();
       Serial.print("Item: Maggie\trs.25\tTotal Amount: Rs."+(String)amount+"\tItems: "+(String)items);
@@ -177,16 +192,22 @@ void loop()
         amount-=20;
         tags[3]--;
         items--;
-        if (tags[3]==0) pg3="";
+        if (tags[3]==0){
+          pg3="";
+          types-=1;
+        }          
         else{
-          pg3="<tr><td>Pepsi</td><td>"+String(tags[3])+"</td><td>"+String(20)+"</td></tr>";
+          expire="23 Feb 2023";
+          pg3="<tr><td>Pepsi</td><td>"+String(tags[3])+"</td><td>"+String(20)+"</td><td>"+expire+"</td></tr>";
         } 
       }
       else if(!a){
         amount+=20;
         tags[3]++;
+        if(tags[3]==1) types+=1;
         items++;
-        pg3="<tr><td>Pepsi</td><td>"+String(tags[3])+"</td><td>"+String(20)+"</td></tr>";
+        expire="23 Feb 2023";
+        pg3="<tr><td>Pepsi</td><td>"+String(tags[3])+"</td><td>"+String(20)+"</td><td>"+expire+"</td></tr>";
       }
         lcd.clear();
         Serial.print("Item: Pepsi\tRs.20\tTotal Amount: Rs."+(String)amount+"\tItems: "+(String)items);
@@ -208,16 +229,22 @@ void loop()
         amount-=15;
         tags[4]--;
         items--;
-        if (tags[4]==0) pg4="";
+        if (tags[4]==0){
+          pg4="";
+          types-=1;
+        }
         else{
-          pg4="<tr><td>Chips</td><td>"+String(tags[4])+"</td><td>"+String(15)+"</td></tr>";
+          expire="25 Feb 2023";
+          pg4="<tr><td>Chips</td><td>"+String(tags[4])+"</td><td>"+String(15)+"</td><td>"+expire+"</td></tr>";
         }        
       }
       else if(!a){
         amount+=15;
         tags[4]++;
+        if(tags[4]==1) types+=1;
         items++;
-        pg4="<tr><td>Chips</td><td>"+String(tags[4])+"</td><td>"+String(15)+"</td></tr>";
+        expire="25 Feb 2023";
+        pg4="<tr><td>Chips</td><td>"+String(tags[4])+"</td><td>"+String(15)+"</td><td>"+expire+"</td></tr>";
         
       }
         lcd.clear();
